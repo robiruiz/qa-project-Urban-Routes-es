@@ -1,6 +1,5 @@
 import data
 from selenium import webdriver
-from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
@@ -155,6 +154,11 @@ class UrbanRoutesPage:
         "and normalize-space()='Buscar automóvil']"
     )
 
+    # Número telefónico mostrado después de confirmar el SMS
+    confirmed_phone_text = (
+        By.CSS_SELECTOR,
+        ".tariff-picker .form .np-button.filled .np-text"
+    )
 
     def __init__(self, driver):
         self.driver = driver
@@ -293,6 +297,15 @@ class UrbanRoutesPage:
             )
         )
 
+    def get_phone_number(self):
+        phone_element = WebDriverWait(self.driver, 15).until(
+            expected_conditions.visibility_of_element_located(
+                self.confirmed_phone_text
+            )
+        )
+
+        return phone_element.text
+
     def open_payment_method(self):
         payment_button = WebDriverWait(self.driver, 15).until(
             expected_conditions.element_to_be_clickable(
@@ -425,20 +438,6 @@ class UrbanRoutesPage:
         plus_button.click()
         plus_button.click()
 
-    def get_ice_cream_count(self):
-        counter = WebDriverWait(self.driver, 15).until(
-            expected_conditions.visibility_of_element_located(
-                self.ice_cream_counter
-            )
-        )
-        return int(counter.text)
-
-    def is_blanket_and_tissues_selected(self):
-        checkbox = self.driver.find_element(
-            *self.blanket_and_tissues_checkbox
-        )
-        return checkbox.is_selected()
-
     def request_taxi(self):
         taxi_button = WebDriverWait(self.driver, 15).until(
             expected_conditions.element_to_be_clickable(
@@ -446,6 +445,14 @@ class UrbanRoutesPage:
             )
         )
         taxi_button.click()
+
+    def get_ice_cream_count(self):
+        counter = WebDriverWait(self.driver, 15).until(
+            expected_conditions.visibility_of_element_located(
+                self.ice_cream_counter
+            )
+        )
+        return int(counter.text)
 
     def wait_for_taxi_search_modal(self):
         return WebDriverWait(self.driver, 15).until(
@@ -456,10 +463,7 @@ class UrbanRoutesPage:
 
 
 class TestUrbanRoutes:
-    driver = None
-
-    @classmethod
-    def setup_class(cls):
+    def setup_method(self):
         # Habilitar los registros de rendimiento de Chrome
         options = webdriver.ChromeOptions()
         options.set_capability(
@@ -467,31 +471,85 @@ class TestUrbanRoutes:
             {"performance": "ALL"}
         )
 
-        # Crear Chrome con la configuración requerida
-        cls.driver = webdriver.Chrome(options=options)
-
+        # Crear un navegador nuevo para cada test
+        self.driver = webdriver.Chrome(options=options)
 
     def test_set_route(self):
+        # Precondición: abrir Urban Routes
         self.driver.get(data.urban_routes_url)
         routes_page = UrbanRoutesPage(self.driver)
-        address_from = data.address_from
-        address_to = data.address_to
-        routes_page.set_route(address_from, address_to)
-        assert routes_page.get_from() == address_from
-        assert routes_page.get_to() == address_to
-        # Abrir el formulario para pedir un taxi
+
+        # Acción: configurar origen y destino
+        routes_page.set_route(
+            data.address_from,
+            data.address_to
+        )
+
+        # Validación: comprobar ambas direcciones
+        assert routes_page.get_from() == data.address_from
+        assert routes_page.get_to() == data.address_to
+
+    def test_select_comfort(self):
+        # Precondiciones: abrir Urban Routes y configurar direcciones
+        self.driver.get(data.urban_routes_url)
+        routes_page = UrbanRoutesPage(self.driver)
+
+        routes_page.set_route(
+            data.address_from,
+            data.address_to
+        )
+
         routes_page.open_taxi_order_form()
 
-        # Seleccionar la tarifa Comfort
+        # Acción: seleccionar la tarifa Comfort
         routes_page.select_comfort_tariff()
 
-        # Comprobar que Comfort quedó seleccionada
+        # Validación: comprobar que Comfort quedó seleccionada
         routes_page.check_comfort_tariff_selected()
 
-        # Introducir y confirmar el número telefónico
+    def test_add_phone(self):
+        # Precondiciones: abrir Urban Routes
+        self.driver.get(data.urban_routes_url)
+        routes_page = UrbanRoutesPage(self.driver)
+
+        # Configurar las direcciones
+        routes_page.set_route(
+            data.address_from,
+            data.address_to
+        )
+
+        # Abrir el formulario y seleccionar Comfort
+        routes_page.open_taxi_order_form()
+        routes_page.select_comfort_tariff()
+
+        # Acción: introducir y confirmar el teléfono
         routes_page.confirm_phone_number(data.phone_number)
 
-        # Agregar tarjeta de crédito
+        # Validación: comprobar que quedó registrado
+        assert (
+                routes_page.get_phone_number().lstrip("+")
+                == data.phone_number.lstrip("+")
+        ), "El número telefónico confirmado no coincide"
+
+    def test_add_card(self):
+        # Precondiciones: abrir Urban Routes
+        self.driver.get(data.urban_routes_url)
+        routes_page = UrbanRoutesPage(self.driver)
+
+        # Configurar origen y destino
+        routes_page.set_route(
+            data.address_from,
+            data.address_to
+        )
+
+        # Abrir el formulario y seleccionar Comfort
+        routes_page.open_taxi_order_form()
+        routes_page.select_comfort_tariff()
+
+        # Confirmar el número telefónico
+        routes_page.confirm_phone_number(data.phone_number)
+
+        # Acción: agregar una tarjeta
         routes_page.add_card(
             data.card_number,
             data.card_code
@@ -500,40 +558,112 @@ class TestUrbanRoutes:
         # Cerrar el modal de método de pago
         routes_page.close_payment_modal()
 
-        # Verificar que la tarjeta quedó seleccionada
-        assert routes_page.get_selected_payment_method() == "Tarjeta"
+        # Validación: comprobar el método seleccionado
+        assert routes_page.get_selected_payment_method() == "Tarjeta", (
+            "La tarjeta no quedó seleccionada como método de pago"
+        )
 
-        # Escribir un mensaje para el conductor
-        routes_page.set_message_for_driver(data.message_for_driver)
+    def test_message_driver(self):
+        # Precondiciones: abrir Urban Routes
+        self.driver.get(data.urban_routes_url)
+        routes_page = UrbanRoutesPage(self.driver)
 
-        # Comprobar que el mensaje se escribió correctamente
+        # Configurar direcciones
+        routes_page.set_route(
+            data.address_from,
+            data.address_to
+        )
+
+        # Seleccionar Comfort
+        routes_page.open_taxi_order_form()
+        routes_page.select_comfort_tariff()
+
+        # Acción: escribir el mensaje al conductor
+        routes_page.set_message_for_driver(
+            data.message_for_driver
+        )
+
+        # Validación: comprobar el mensaje escrito
         assert (
                 routes_page.get_message_for_driver()
                 == data.message_for_driver
+        ), "El mensaje para el conductor no coincide"
+
+    def test_blanket(self):
+        # Precondiciones: abrir Urban Routes
+        self.driver.get(data.urban_routes_url)
+        routes_page = UrbanRoutesPage(self.driver)
+
+        # Configurar las direcciones
+        routes_page.set_route(
+            data.address_from,
+            data.address_to
         )
 
-        # Activar manta y pañuelos
-        routes_page.enable_blanket_and_tissues()
-        assert routes_page.is_blanket_and_tissues_selected()
+        # Abrir las opciones del taxi y seleccionar Comfort
+        routes_page.open_taxi_order_form()
+        routes_page.select_comfort_tariff()
 
-        # Pedir dos helados
+        # Acción: activar manta y pañuelos
+        routes_page.enable_blanket_and_tissues()
+
+        # Validación: comprobar que quedó activada
+        assert routes_page.is_blanket_and_tissues_selected(), (
+            "La opción Manta y pañuelos no quedó activada"
+        )
+
+    def test_ice_cream(self):
+        # Precondiciones: abrir Urban Routes
+        self.driver.get(data.urban_routes_url)
+        routes_page = UrbanRoutesPage(self.driver)
+
+        # Configurar las direcciones
+        routes_page.set_route(
+            data.address_from,
+            data.address_to
+        )
+
+        # Abrir el formulario y seleccionar Comfort
+        routes_page.open_taxi_order_form()
+        routes_page.select_comfort_tariff()
+
+        # Acción: pedir dos helados
         routes_page.add_two_ice_creams()
 
-        # Comprobar que se pidieron exactamente dos helados
+        # Validación: comprobar la cantidad
         assert routes_page.get_ice_cream_count() == 2, (
             "La cantidad de helados no es 2"
         )
 
-        # Solicitar el taxi
+    def test_search_taxi(self):
+        # Precondiciones: abrir Urban Routes
+        self.driver.get(data.urban_routes_url)
+        routes_page = UrbanRoutesPage(self.driver)
+
+        # Configurar las direcciones
+        routes_page.set_route(
+            data.address_from,
+            data.address_to
+        )
+
+        # Abrir el formulario y seleccionar Comfort
+        routes_page.open_taxi_order_form()
+
+        routes_page.select_comfort_tariff()
+
+        # Confirmar teléfono para habilitar el pedido
+        routes_page.confirm_phone_number(data.phone_number)
+
+        # Acción: solicitar un taxi
         routes_page.request_taxi()
 
-        # Verificar que aparezca el modal de búsqueda
+        # Validación: comprobar el modal de búsqueda
         search_modal = routes_page.wait_for_taxi_search_modal()
 
         assert search_modal.is_displayed(), (
             "No apareció el modal de búsqueda del taxi"
         )
 
-    @classmethod
-    def teardown_class(cls):
-        cls.driver.quit()
+    def teardown_method(self):
+        self.driver.quit()
+

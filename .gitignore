@@ -5,3 +5,4 @@ __pycache__/
 *.pyc
 diagnostico_sms.txt
 resultado_prueba.txt
+main_backup.py
