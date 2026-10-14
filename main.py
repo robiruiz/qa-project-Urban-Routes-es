@@ -1,4 +1,5 @@
 import data
+import pytest
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
@@ -663,6 +664,36 @@ class TestUrbanRoutes:
         assert search_modal.is_displayed(), (
             "No apareció el modal de búsqueda del taxi"
         )
+
+    @pytest.mark.skip(
+        reason="Pendiente: Urban Routes devuelve HTTP 500 al crear pedidos."
+    )
+    def test_driver_info(self):
+        # Precondiciones: abrir Urban Routes
+        self.driver.get(data.urban_routes_url)
+        routes_page = UrbanRoutesPage(self.driver)
+
+        # Configurar origen y destino
+        routes_page.set_route(
+            data.address_from,
+            data.address_to
+        )
+
+        # Abrir el formulario y seleccionar Comfort
+        routes_page.open_taxi_order_form()
+        routes_page.select_comfort_tariff()
+
+        # Confirmar el número telefónico
+        routes_page.confirm_phone_number(data.phone_number)
+
+        # Solicitar un taxi
+        routes_page.request_taxi()
+
+        # PENDIENTE:
+        # Esperar a que se asigne un conductor.
+        # Verificar nombre y datos del vehículo.
+        # Los localizadores se definirán con DevTools
+        # cuando Urban Routes permita crear pedidos.
 
     def teardown_method(self):
         self.driver.quit()
