@@ -243,11 +243,6 @@ class UrbanRoutesPage:
         phone_input.clear()
         phone_input.send_keys(phone_number)
 
-        # Comprobar qué valor recibió realmente el campo
-        actual_value = phone_input.get_property("value")
-        print("Valor introducido en teléfono:", repr(actual_value))
-
-
     def click_phone_next_button(self):
         next_button = WebDriverWait(self.driver, 15).until(
             expected_conditions.element_to_be_clickable(
@@ -493,11 +488,6 @@ class UrbanRoutesPage:
             )
         ).text.strip()
 
-        print(
-            "Nombre del conductor obtenido:",
-            name
-        )
-
         # Esperar a que aparezca la calificación
         rating = WebDriverWait(self.driver, 15).until(
             expected_conditions.visibility_of_element_located(
@@ -710,6 +700,15 @@ class TestUrbanRoutes:
 
         # Confirmar teléfono para habilitar el pedido
         routes_page.confirm_phone_number(data.phone_number)
+
+        # Agregar un mensaje válido para el conductor
+        routes_page.set_message_for_driver(data.message_for_driver)
+
+        # Validar que el mensaje quedó registrado
+        assert (
+                routes_page.get_message_for_driver()
+                == data.message_for_driver
+        ), "El mensaje para el conductor no coincide"
 
         # Acción: solicitar un taxi
         routes_page.request_taxi()
