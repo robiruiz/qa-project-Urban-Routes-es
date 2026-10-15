@@ -1,195 +1,156 @@
-Urban Routes — Pruebas automatizadas
+# Urban Routes — Automatización de pruebas
 
-Descripción
+## Descripción del proyecto
 
-Proyecto del Sprint 9 del bootcamp QA Engineer de TripleTen.
+Proyecto del Sprint 9 del bootcamp **QA Engineer de TripleTen**.
 
-El objetivo es automatizar las principales funcionalidades del proceso de solicitud de un taxi en la aplicación web Urban Routes, utilizando Selenium WebDriver, Python y Pytest.
+El objetivo es automatizar las principales funcionalidades del proceso de solicitud de un taxi en la aplicación web **Urban Routes**, utilizando Python, Selenium WebDriver y Pytest.
 
-El proyecto utiliza el patrón Page Object Model (POM) para separar las interacciones con la interfaz de usuario de las pruebas automatizadas.
+El proyecto implementa el patrón de diseño **Page Object Model (POM)** para organizar los localizadores y métodos de interacción con la interfaz, facilitando el mantenimiento y la reutilización del código.
 
-Tecnologías utilizadas
+## Tecnologías utilizadas
 
-Python
+- **Python:** lenguaje de programación utilizado para desarrollar las pruebas.
+- **Selenium WebDriver:** automatización de interacciones con el navegador.
+- **Pytest:** ejecución y validación de casos de prueba.
+- **Google Chrome:** navegador utilizado para las pruebas.
+- **PyCharm:** entorno de desarrollo.
+- **Git y GitHub:** control de versiones y alojamiento del repositorio.
 
-Selenium WebDriver
+## Estructura del proyecto
 
-Pytest
+```text
+qa-project-Urban-Routes-es/
+├── main.py
+├── data.py
+├── README.md
+└── .gitignore
+```
 
-Google Chrome
+**main.py:** contiene la clase `UrbanRoutesPage`, que agrupa los localizadores y métodos de interacción, y la clase `TestUrbanRoutes`, que contiene las pruebas automatizadas.
 
-Selenium Manager
+**data.py:** almacena la URL del servidor de Urban Routes y los datos utilizados durante las pruebas.
 
-PyCharm
+**README.md:** documentación del proyecto, las tecnologías utilizadas y las instrucciones de ejecución.
 
-Git y GitHub
+**.gitignore:** excluye archivos locales, entornos virtuales, cachés y archivos temporales del repositorio.
 
-Arquitectura del proyecto
+## Pruebas automatizadas
 
-El archivo main.py contiene dos clases principales:
+Se implementaron nueve pruebas independientes que verifican las siguientes funcionalidades:
 
-UrbanRoutesPage (Page Object)
+| Prueba | Funcionalidad |
+|---|---|
+| `test_set_route()` | Configurar las direcciones de origen y destino. |
+| `test_select_comfort()` | Seleccionar la tarifa Comfort. |
+| `test_add_phone()` | Introducir y confirmar un número telefónico mediante código SMS. |
+| `test_add_card()` | Agregar una tarjeta de pago de prueba. |
+| `test_message_driver()` | Introducir un mensaje para el conductor. |
+| `test_blanket()` | Activar la opción de manta y pañuelos. |
+| `test_ice_cream()` | Solicitar dos helados. |
+| `test_search_taxi()` | Solicitar un taxi y verificar la aparición de la ventana de búsqueda. |
+| `test_driver_info()` | Verificar el nombre, la calificación y la matrícula del vehículo del conductor asignado. |
 
-Centraliza los localizadores y los métodos utilizados para interactuar con Urban Routes, como configurar direcciones, seleccionar tarifas, confirmar el teléfono y solicitar un taxi.
+Cada prueba utiliza las interacciones y validaciones correspondientes a su funcionalidad.
 
-TestUrbanRoutes (pruebas automatizadas)
+## Diseño de la automatización
 
-Contiene pruebas independientes que utilizan los métodos del Page Object.
+La implementación utiliza el patrón Page Object Model (POM), que permite separar las interacciones con la interfaz de las validaciones de las pruebas.
 
-Cada prueba sigue tres etapas:
+El código se organiza principalmente en dos clases:
 
-Precondiciones: preparar el estado necesario de la aplicación.
+- `UrbanRoutesPage`: contiene los localizadores y métodos para interactuar con Urban Routes.
+- `TestUrbanRoutes`: contiene los nueve métodos de prueba ejecutados por Pytest.
 
-Acción: ejecutar la funcionalidad correspondiente.
+Se utilizan **esperas explícitas** mediante `WebDriverWait` y `expected_conditions` para sincronizar la automatización con los elementos y estados de la interfaz.
 
-Validación: comprobar el resultado esperado mediante aserciones.
+En la prueba de información del conductor, Selenium espera a que se complete la asignación antes de leer y validar sus datos.
 
-Se utilizan los métodos setup_method() y teardown_method() para crear y cerrar una sesión independiente de Chrome para cada prueba.
+## Requisitos previos
 
-Escenarios de prueba
+Para ejecutar el proyecto se necesita:
 
-Test
+- Python instalado.
+- Google Chrome instalado.
+- Acceso a una instancia activa de Urban Routes proporcionada por TripleTen.
+- Las bibliotecas Selenium y Pytest.
 
-Funcionalidad
+## Instalación y configuración
 
-Estado
+**1. Clonar el repositorio**
 
-test_set_route()
+```bash
+git clone https://github.com/robiruiz/qa-project-Urban-Routes-es.git
+cd qa-project-Urban-Routes-es
+```
 
-Configurar direcciones de origen y destino
+**2. Crear un entorno virtual**
 
-Implementado
+```bash
+python -m venv .venv
+```
 
-test_select_comfort()
+**3. Activar el entorno virtual en Windows PowerShell**
 
-Seleccionar tarifa Comfort
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
 
-Implementado
+**4. Instalar las dependencias**
 
-test_add_phone()
-
-Agregar y confirmar teléfono mediante SMS
-
-Implementado
-
-test_add_card()
-
-Agregar tarjeta de pago de prueba
-
-Implementado
-
-test_message_driver()
-
-Escribir un mensaje para el conductor
-
-Implementado
-
-test_blanket()
-
-Activar manta y pañuelos
-
-Implementado
-
-test_ice_cream()
-
-Solicitar dos helados
-
-Implementado
-
-test_search_taxi()
-
-Solicitar un taxi y verificar el modal de búsqueda
-
-Implementado
-
-test_driver_info()
-
-Verificar la información del conductor asignado
-
-Pendiente
-
-Las primeras ocho pruebas se ejecutaron individualmente y también como conjunto.
-
-Última ejecución conjunta registrada:
-
-8 passed in 63.14s
-
-La novena prueba está pendiente de implementación y validación debido a un problema del servicio de pedidos de Urban Routes.
-
-Organización del proyecto
-
-main.py: clases Page Object y pruebas automatizadas.
-
-data.py: URL del servidor y datos de prueba.
-
-.gitignore: exclusiones de archivos locales y temporales.
-
-README.md: documentación del proyecto.
-
-Requisitos e instalación
-
-Se necesita:
-
-Python.
-
-Google Chrome.
-
-Acceso a una instancia vigente de Urban Routes.
-
-Instalar las dependencias desde la carpeta raíz del proyecto:
-
+```bash
 python -m pip install selenium pytest
+```
 
-Selenium Manager permite gestionar ChromeDriver automáticamente en instalaciones compatibles.
+Selenium Manager permite gestionar ChromeDriver automáticamente en versiones recientes de Selenium, por lo que normalmente no es necesario descargarlo manualmente.
 
-Configuración
+**5. Configurar el servidor**
 
-Antes de ejecutar las pruebas, actualizar el valor urban_routes_url en data.py con la URL vigente proporcionada por TripleTen.
+Abrir el archivo `data.py` y actualizar `urban_routes_url` con la URL vigente de Urban Routes proporcionada por TripleTen.
 
-Verificar también que los datos de prueba correspondan al entorno utilizado.
+Verificar que los datos de prueba correspondan al entorno utilizado.
 
-Ejecución
+## Ejecución de las pruebas
 
-Para ejecutar todas las pruebas implementadas:
+Desde la raíz del proyecto, con el entorno virtual configurado, ejecutar:
 
-python -m pytest main.py -v
+```bash
+python -m pytest main.py::TestUrbanRoutes -v
+```
 
-Para ejecutar un test individual:
+Para ejecutar una sola prueba, por ejemplo la de información del conductor:
 
-python -m pytest main.py::TestUrbanRoutes::test_add_phone -s -q --tb=short
+```bash
+python -m pytest main.py::TestUrbanRoutes::test_driver_info -v
+```
 
-Para comprobar la sintaxis:
+Para obtener información adicional durante la ejecución:
 
-python -m py_compile main.py data.py
+```bash
+python -m pytest main.py::TestUrbanRoutes -v -rs --tb=short
+```
 
-Cada prueba debe ejecutarse de manera independiente, sin depender de los resultados de otras pruebas.
+## Resultado de las pruebas
 
-Sincronización con la interfaz
+La suite completa fue ejecutada localmente con Pytest, obteniendo el siguiente resultado:
 
-Se utilizan principalmente esperas explícitas mediante WebDriverWait y las condiciones de Selenium para esperar elementos visibles o interactivos.
+**9 passed in 84.85s**
 
-Incidencia conocida: creación de pedidos
+Las nueve pruebas automatizadas finalizaron correctamente, sin pruebas fallidas ni omitidas en esa ejecución.
 
-Durante las pruebas se detectó un problema en la creación de pedidos de Urban Routes.
+Este resultado corresponde a una ejecución local del proyecto, utilizando una instancia activa de Urban Routes.
 
-Al solicitar un taxi, la petición order puede devolver HTTP 500 con la respuesta:
+## Consideraciones
 
-{"status":500,"error":"UnexpectedError"}
+- La URL de Urban Routes puede cambiar al reiniciar o reemplazar el servidor de TripleTen.
+- El funcionamiento de las pruebas depende de que la instancia de la aplicación esté disponible.
+- Los datos de pago utilizados son ficticios y tienen fines de prueba.
+- La solicitud del taxi incluye un mensaje válido para el conductor.
+- La asignación del conductor puede requerir una espera adicional antes de mostrar su información.
+- Las pruebas se ejecutan en Google Chrome mediante Selenium WebDriver.
 
-El problema se reprodujo manualmente desde Chrome, sin utilizar Selenium, y persistió al cambiar de instancia del servidor.
+## Autor
 
-La incidencia fue reportada a TripleTen y se encuentra pendiente de respuesta.
+Proyecto desarrollado como parte del Sprint 9 del programa QA Engineer de TripleTen.
 
-Esta situación impide comprobar de manera confiable la asignación del conductor y completar el escenario test_driver_info().
-
-El éxito de test_search_taxi() únicamente confirma la aparición del modal de búsqueda; no garantiza que el servidor haya completado la asignación de un conductor.
-
-Observaciones
-
-Las instancias de Urban Routes pueden cambiar o dejar de estar disponibles.
-
-Los datos de tarjeta utilizados en las pruebas son ficticios.
-
-Los tests deben ser independientes y contar con validaciones propias.
-
-La aprobación final del proyecto depende de completar y verificar los nueve escenarios requeridos.
+**Repositorio:** https://github.com/robiruiz/qa-project-Urban-Routes-es

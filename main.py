@@ -161,6 +161,22 @@ class UrbanRoutesPage:
         ".tariff-picker .form .np-button.filled .np-text"
     )
 
+    # Información del conductor asignado
+    driver_name = (
+        By.CSS_SELECTOR,
+        ".order-buttons > .order-btn-group:first-child > div:nth-child(2)"
+    )
+
+    driver_rating = (
+        By.CSS_SELECTOR,
+        ".order-btn-rating"
+    )
+
+    driver_car_number = (
+        By.CSS_SELECTOR,
+        ".order-number .number"
+    )
+
     def __init__(self, driver):
         self.driver = driver
 
@@ -462,6 +478,46 @@ class UrbanRoutesPage:
             )
         )
 
+    def get_driver_info(self):
+        # Esperar a que se asigne un conductor real
+        WebDriverWait(self.driver, 60).until(
+            expected_conditions.visibility_of_element_located(
+                self.driver_rating
+            )
+        )
+
+        # Esperar a que aparezca el nombre del conductor
+        name = WebDriverWait(self.driver, 30).until(
+            expected_conditions.visibility_of_element_located(
+                self.driver_name
+            )
+        ).text.strip()
+
+        print(
+            "Nombre del conductor obtenido:",
+            name
+        )
+
+        # Esperar a que aparezca la calificación
+        rating = WebDriverWait(self.driver, 15).until(
+            expected_conditions.visibility_of_element_located(
+                self.driver_rating
+            )
+        ).text.strip()
+
+        # Esperar a que aparezca la matrícula
+        car_number = WebDriverWait(self.driver, 15).until(
+            expected_conditions.visibility_of_element_located(
+                self.driver_car_number
+            )
+        ).text.strip()
+
+        return {
+            "name": name,
+            "rating": rating,
+            "car_number": car_number
+        }
+
 
 class TestUrbanRoutes:
     def setup_method(self):
@@ -665,9 +721,6 @@ class TestUrbanRoutes:
             "No apareció el modal de búsqueda del taxi"
         )
 
-    @pytest.mark.skip(
-        reason="Pendiente: Urban Routes devuelve HTTP 500 al crear pedidos."
-    )
     def test_driver_info(self):
         # Precondiciones: abrir Urban Routes
         self.driver.get(data.urban_routes_url)
@@ -686,14 +739,30 @@ class TestUrbanRoutes:
         # Confirmar el número telefónico
         routes_page.confirm_phone_number(data.phone_number)
 
+        # Agregar mensaje válido para el conductor
+        routes_page.set_message_for_driver(data.message_for_driver)
+
+        # Verificar que el mensaje se escribió correctamente
+        assert (
+                routes_page.get_message_for_driver()
+                == data.message_for_driver
+        ), "El mensaje para el conductor no coincide"
+
         # Solicitar un taxi
         routes_page.request_taxi()
 
-        # PENDIENTE:
-        # Esperar a que se asigne un conductor.
-        # Verificar nombre y datos del vehículo.
-        # Los localizadores se definirán con DevTools
-        # cuando Urban Routes permita crear pedidos.
+        # Esperar y obtener la información del conductor
+        driver_info = routes_page.get_driver_info()
+
+        # Comprobar el nombre
+        assert driver_info["name"], "No aparece el nombre del conductor"
+
+        # Comprobar la calificación
+        rating = float(driver_info["rating"].replace(",", "."))
+        assert 0 < rating <= 5, "La calificación del conductor no es válida"
+
+        # Comprobar la matrícula
+        assert driver_info["car_number"], "No aparece la matrícula del automóvil"
 
     def teardown_method(self):
         self.driver.quit()
